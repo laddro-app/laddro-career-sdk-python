@@ -74,7 +74,7 @@ class Templates:
                 provider=m["provider"],
                 name=m["name"],
                 base_url=m.get("baseUrl", ""),
-                models=[Model(id=mod["id"], name=mod["name"], recommended=mod["recommended"]) for mod in m["models"]],
+                models=[Model(id=mod["id"], name=mod["name"], recommended=mod.get("recommended", False)) for mod in m["models"]],
                 key_prefix=m.get("keyPrefix", ""),
                 docs_url=m.get("docsUrl", ""),
             )
