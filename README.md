@@ -92,6 +92,13 @@ except LaddroAPIError as e:
     print(f"Error {e.status}: {e}")
 ```
 
+## Links
+
+- [Laddro](https://laddro.com) — AI-powered career tools
+- [API Reference](https://api.laddro.com/reference) — Interactive docs
+- [Documentation](https://docs.laddro.com) — Guides and tutorials
+- [GitHub](https://github.com/laddro-app) — All SDKs and tools
+
 ## License
 
 MIT
