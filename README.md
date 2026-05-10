@@ -85,7 +85,7 @@ from laddro_career import LaddroAPIError, LaddroAuthError, LaddroUsageLimitError
 try:
     await laddro.tailor.run(request)
 except LaddroUsageLimitError:
-    print("Buy more credits at developers.laddro.com")
+    print("Buy more credits at docs.laddro.com")
 except LaddroAuthError:
     print("Invalid API key")
 except LaddroAPIError as e:
