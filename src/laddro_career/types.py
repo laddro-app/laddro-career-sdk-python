@@ -11,6 +11,20 @@ class LaddroConfig:
 
 
 @dataclass
+class ArtifactMetadata:
+    resume_id: str | None = None
+    cover_letter_id: str | None = None
+    filename: str | None = None
+    mime_type: str | None = None
+
+
+@dataclass
+class BinaryResponse:
+    data: bytes
+    metadata: ArtifactMetadata
+
+
+@dataclass
 class ResumeSummary:
     id: str
     resume_id: str
@@ -134,6 +148,8 @@ class CoverLetterSummary:
     title: str
     created_at: str
     updated_at: str
+    letter_content: str | None = None
+    data: dict | None = None
 
 
 @dataclass

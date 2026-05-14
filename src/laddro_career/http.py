@@ -2,11 +2,12 @@ from __future__ import annotations
 
 from collections.abc import AsyncIterator
 from typing import Any
+from urllib.parse import unquote
 
 import httpx
 
 from .errors import LaddroAPIError, LaddroAuthError, LaddroNotFoundError, LaddroUsageLimitError
-from .types import SSEEvent
+from .types import ArtifactMetadata, BinaryResponse, SSEEvent
 
 
 class HttpClient:
@@ -59,6 +60,18 @@ class HttpClient:
         data: dict[str, Any] | None = None,
         files: dict[str, Any] | None = None,
     ) -> bytes:
+        response = await self.request_binary_detailed(method, path, json=json, data=data, files=files)
+        return response.data
+
+    async def request_binary_detailed(
+        self,
+        method: str,
+        path: str,
+        *,
+        json: Any | None = None,
+        data: dict[str, Any] | None = None,
+        files: dict[str, Any] | None = None,
+    ) -> BinaryResponse:
         url = f"{self._base_url}{path}"
 
         async with httpx.AsyncClient() as client:
@@ -75,7 +88,7 @@ class HttpClient:
         if not response.is_success:
             self._handle_error(response)
 
-        return response.content
+        return BinaryResponse(data=response.content, metadata=_artifact_metadata(response.headers))
 
     async def request_sse(
         self,
@@ -131,3 +144,26 @@ class HttpClient:
                 raise LaddroNotFoundError(message)
             case _:
                 raise LaddroAPIError(message, response.status_code, code)
+
+
+def _artifact_metadata(headers: httpx.Headers) -> ArtifactMetadata:
+    content_type = headers.get("content-type")
+    return ArtifactMetadata(
+        resume_id=headers.get("x-resume-id"),
+        cover_letter_id=headers.get("x-cover-letter-id"),
+        filename=_content_disposition_filename(headers.get("content-disposition")),
+        mime_type=content_type.split(";", 1)[0] if content_type else None,
+    )
+
+
+def _content_disposition_filename(value: str | None) -> str | None:
+    if not value:
+        return None
+    for part in value.split(";"):
+        part = part.strip()
+        if part.lower().startswith("filename*="):
+            filename = part.split("=", 1)[1].removeprefix("UTF-8''").strip('"')
+            return unquote(filename)
+        if part.lower().startswith("filename="):
+            return part.split("=", 1)[1].strip('"')
+    return None
