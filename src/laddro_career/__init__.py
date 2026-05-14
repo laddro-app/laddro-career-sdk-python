@@ -2,6 +2,8 @@ from .client import Laddro
 from .errors import LaddroAPIError, LaddroAuthError, LaddroNotFoundError, LaddroUsageLimitError
 from .types import (
     AISettings,
+    ArtifactMetadata,
+    BinaryResponse,
     CoverLetterSummary,
     CreateCoverLetterRequest,
     CreateCoverLetterResponse,
@@ -32,6 +34,8 @@ __all__ = [
     "LaddroNotFoundError",
     "LaddroUsageLimitError",
     "AISettings",
+    "ArtifactMetadata",
+    "BinaryResponse",
     "CoverLetterSummary",
     "CreateCoverLetterRequest",
     "CreateCoverLetterResponse",

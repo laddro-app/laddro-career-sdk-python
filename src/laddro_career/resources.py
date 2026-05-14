@@ -11,6 +11,7 @@ from .types import (
     CoverLetterSummary,
     CreateCoverLetterRequest,
     CreateCoverLetterResponse,
+    BinaryResponse,
     ExportRequest,
     GenerateCoverLetterRequest,
     Language,
@@ -147,6 +148,9 @@ class Tailor:
     async def run(self, request: TailorRequest) -> bytes:
         return await self._http.request_binary("POST", "/v1/tailor", json=_to_api_body(request))
 
+    async def run_detailed(self, request: TailorRequest) -> BinaryResponse:
+        return await self._http.request_binary_detailed("POST", "/v1/tailor", json=_to_api_body(request))
+
     async def upload(
         self,
         file: BinaryIO | Path | bytes,
@@ -174,6 +178,34 @@ class Tailor:
             data["includeCoverLetter"] = str(include_cover_letter).lower()
 
         return await self._http.request_binary("POST", "/v1/tailor", data=data, files=files)
+
+    async def upload_detailed(
+        self,
+        file: BinaryIO | Path | bytes,
+        *,
+        position_name: str,
+        filename: str = "resume.pdf",
+        job_description: str | None = None,
+        job_url: str | None = None,
+        mode: str | None = None,
+        language: str | None = None,
+        include_cover_letter: bool | None = None,
+    ) -> BinaryResponse:
+        file_data = _read_file(file)
+        files = {"file": (filename, file_data, "application/pdf")}
+        data: dict[str, str] = {"positionName": position_name}
+        if job_description:
+            data["jobDescription"] = job_description
+        if job_url:
+            data["jobUrl"] = job_url
+        if mode:
+            data["mode"] = mode
+        if language:
+            data["language"] = language
+        if include_cover_letter is not None:
+            data["includeCoverLetter"] = str(include_cover_letter).lower()
+
+        return await self._http.request_binary_detailed("POST", "/v1/tailor", data=data, files=files)
 
     async def stream(self, request: TailorRequest) -> AsyncIterator[SSEEvent]:
         return self._http.request_sse("POST", "/v1/tailor", json=_to_api_body(request))
@@ -211,6 +243,11 @@ class CoverLetters:
             "POST", "/v1/cover-letters/generate", json=_to_api_body(request)
         )
 
+    async def generate_detailed(self, request: GenerateCoverLetterRequest) -> BinaryResponse:
+        return await self._http.request_binary_detailed(
+            "POST", "/v1/cover-letters/generate", json=_to_api_body(request)
+        )
+
     async def upload(
         self,
         file: BinaryIO | Path | bytes,
@@ -232,6 +269,30 @@ class CoverLetters:
             data["language"] = language
 
         return await self._http.request_binary(
+            "POST", "/v1/cover-letters/generate", data=data, files=files
+        )
+
+    async def upload_detailed(
+        self,
+        file: BinaryIO | Path | bytes,
+        *,
+        position_name: str,
+        filename: str = "resume.pdf",
+        job_description: str | None = None,
+        job_url: str | None = None,
+        language: str | None = None,
+    ) -> BinaryResponse:
+        file_data = _read_file(file)
+        files = {"file": (filename, file_data, "application/pdf")}
+        data: dict[str, str] = {"positionName": position_name}
+        if job_description:
+            data["jobDescription"] = job_description
+        if job_url:
+            data["jobUrl"] = job_url
+        if language:
+            data["language"] = language
+
+        return await self._http.request_binary_detailed(
             "POST", "/v1/cover-letters/generate", data=data, files=files
         )
 
@@ -340,6 +401,8 @@ def _parse_cover_letter(data: dict) -> CoverLetterSummary:
         title=data["title"],
         created_at=data["createdAt"],
         updated_at=data["updatedAt"],
+        letter_content=data.get("letterContent"),
+        data=data.get("data"),
     )
 
 
